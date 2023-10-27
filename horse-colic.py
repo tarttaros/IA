@@ -7,6 +7,7 @@ import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
 from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import GridSearchCV
 
 #se abre el archivo que se va a manejar (horse-colic.csv)
 file = pd.read_csv('horse-colic.csv', names=[
@@ -350,10 +351,8 @@ figTest.show()
 """
 División de datos:
 
-Divide tu conjunto de datos en características (X) y la variable objetivo (y) que deseas predecir. Supongo que quieres predecir la variable "outcome". Asegúrate de que "outcome" sea una variable categórica con valores numéricos, ya que SVM se usa comúnmente para problemas de clasificación. También, elimina las filas con valores nulos en la variable "outcome".
-
-python
-Copy code"""
+Divide el conjunto de datos en características (X) y la variable objetivo (y) que deseas predecir. Supongo que quieres predecir la variable "outcome". Asegúrate de que "outcome" sea una variable categórica con valores numéricos, ya que SVM se usa comúnmente para problemas de clasificación. También, elimina las filas con valores nulos en la variable "outcome".
+"""
 X = df.drop(columns=['outcome'])
 y = df['outcome']
 y = y.astype(int)  # Asegúrate de que sea una variable numérica
@@ -361,17 +360,13 @@ y = y.astype(int)  # Asegúrate de que sea una variable numérica
 División de entrenamiento y prueba:
 
 Divide tus datos en conjuntos de entrenamiento y prueba usando train_test_split:
-
-python
-Copy code"""
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+"""
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1)
 """
 Escalamiento de características:
 
 Escala las características usando StandardScaler:
-
-python
-Copy code"""
+"""
 scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
@@ -379,26 +374,44 @@ X_test = scaler.transform(X_test)
 Entrenamiento del modelo SVM:
 
 Utiliza Scikit-Learn para crear un modelo SVM para clasificación. Dado que estás trabajando en un problema de clasificación, puedes usar SVC (Support Vector Classification) para ello:
+"""
 
-python
-Copy code"""
-svm_model = SVC(kernel='linear', C=1.0, random_state=42)
+# Grid de hiperparámetros
+# se puede hacer tambien un for 'C': range(1,8)
+# ==============================================================================
+param_grid = {'C': np.logspace(-5, 7, 20)}
+
+# Búsqueda por validación cruzada
+# ==============================================================================
+grid_search = GridSearchCV(
+#'linear', 'poly', 'rbf', 'sigmoid', 'precomputed'
+        estimator  = SVC(kernel= 'rbf',
+        gamma='scale'),
+        param_grid = param_grid,
+        scoring    = 'accuracy',
+        n_jobs     = -1,
+        cv         = 3,
+        verbose    = 0,
+        return_train_score = True
+      )
+
+res =grid_search.fit(X_train, y_train)
+print (res)
+print (grid_search.best_params_)
+
+svm_model = SVC(kernel='linear', C=grid_search.best_params_['C'], random_state=1)
 svm_model.fit(X_train, y_train)
 """
-Ajusta los parámetros (kernel, C, etc.) según tu necesidad.
+Se ajustan los parámetros (kernel, C, etc.) según la necesidad.
 
 Evaluación del modelo:
 
 Después de entrenar el modelo, evalúa su rendimiento en el conjunto de prueba:
-
-python
-Copy code"""
+"""
 y_pred = svm_model.predict(X_test)
 """
-Puedes calcular diversas métricas para evaluar su rendimiento, como precisión, recall y F1-score.
-
-python
-Copy code"""
+Se puede calcular diversas métricas para evaluar su rendimiento, como precisión, recall y F1-score.
+"""
 from sklearn.metrics import accuracy_score, classification_report
 
 accuracy = accuracy_score(y_test, y_pred)
