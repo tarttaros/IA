@@ -361,7 +361,7 @@ División de entrenamiento y prueba:
 
 Divide tus datos en conjuntos de entrenamiento y prueba usando train_test_split:
 """
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.4, random_state=42)
 """
 Escalamiento de características:
 
@@ -399,7 +399,7 @@ res =grid_search.fit(X_train, y_train)
 print (res)
 print (grid_search.best_params_)
 
-svm_model = SVC(kernel='linear', C=grid_search.best_params_['C'], random_state=1)
+svm_model = SVC(kernel='linear', C=grid_search.best_params_['C'], random_state=42)
 svm_model.fit(X_train, y_train)
 """
 Se ajustan los parámetros (kernel, C, etc.) según la necesidad.
