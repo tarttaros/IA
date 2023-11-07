@@ -194,6 +194,7 @@ x_new2 = pd.DataFrame(X_new, columns = features[filter])
 print(features[filter])
 x_new2 = pd.get_dummies(x_new2, columns=['mucous membranes', 'pain', 'peripheral pulse'])
 
+
 def crearBarras (etiquetas, y):
   count_classes = pd.value_counts(y, sort = True)
   count_classes.plot(kind = 'bar', rot=0)
@@ -213,17 +214,7 @@ Divide tus datos en conjuntos de entrenamiento y prueba usando train_test_split:
 os = RandomOverSampler()
 X_train_rest, y_train_rest = os.fit_resample(x_new2, y)
 
-X_train, X_test, y_train, y_test = train_test_split(X_train_rest, y_train_rest, train_size = 0.7, random_state = 1)
-
-# Se genera la función para ejecutar el modelo
-def ejecutar_modelo(X_train, X_test, y_train, y_test):
-    clf = DecisionTreeClassifier(criterion='entropy')
-    # Train Decision Tree Classifer
-    clf = clf.fit(X_train,y_train)
-    return clf
-
-# Se corre el modelo
-model = ejecutar_modelo(X_train, X_test, y_train, y_test)
+X_train, X_test, y_train, y_test = train_test_split(X_train_rest, y_train_rest, train_size = 0.7)
 
 #Se define una funcion para mostrar los resultados
 def mostrar_resultados(y_test, pred_y):
@@ -243,10 +234,11 @@ Utiliza Scikit-Learn para crear un modelo SVM para clasificación. Dado que est�
 
 print ("Antes de  resampling {}".format(Counter(y)))
 print ("Despues del  resampling {}".format(Counter(y_train)))
-crearBarras (etiquetas, y_train)
+#crearBarras (etiquetas, y_train)
 
-model = ejecutar_modelo(X_train, X_test, y_train, y_test)
+svm_model = SVC(kernel="rbf")
+model = svm_model.fit(X_train, y_train)
 pred_y = model.predict(X_test)
 mostrar_resultados(y_test, pred_y)
 accuracy = accuracy_score(y_test, pred_y)
-print("Accuracy:", accuracy)
+print("Precisión:", accuracy)
