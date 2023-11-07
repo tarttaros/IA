@@ -7,6 +7,7 @@ import seaborn as sns
 from numpy import array
 from imblearn.over_sampling import RandomOverSampler
 from collections import Counter
+from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GridSearchCV
 from sklearn.feature_selection import SelectKBest
 from sklearn.model_selection import train_test_split
@@ -176,12 +177,11 @@ atipicos("rectal temperature","abajo",37,media)
 atipicos("pulse","arriba",120,media1)
 atipicos("packed cell volume","abajo",30,media3)
 
-print(df["outcome"].value_counts())
+
 dfsvm = df
 dfsvm["outcome"] = dfsvm['outcome'].replace(1,0)
 dfsvm["outcome"] = dfsvm['outcome'].replace(2,1)
 dfsvm["outcome"] = dfsvm['outcome'].replace(3,1)
-print(dfsvm["outcome"].value_counts())
 
 x = dfsvm.drop(columns=['outcome'])
 y = dfsvm['outcome']
@@ -193,32 +193,30 @@ features = array(x.columns)
 X_new = best.fit_transform(x, y)
 filter = best.get_support()
 x_new2 = pd.DataFrame(X_new, columns = features[filter])
-
-def crearBarras (etiquetas, y):
-  count_classes = pd.value_counts(y, sort = True)
-  count_classes.plot(kind = 'bar', rot=0)
-  plt.xticks(range(2), etiquetas)
-  plt.title("Frecuencia de acuerdo al número de observaciones")
-  plt.xlabel("Outcome")
-  plt.ylabel("cantidad de observaciones")
-
-etiquetas= ['0','1']
-crearBarras ( etiquetas, y)
+print(features[filter])
+x_new2 = pd.get_dummies(x_new2, columns=['mucous membranes', 'pain', 'peripheral pulse'])
 
 """
 División de entrenamiento y prueba:
 Divide tus datos en conjuntos de entrenamiento y prueba usando train_test_split:
+python
+Copy code"""
+X_train, X_test, y_train, y_test = train_test_split(x_new2, y, test_size=0.3, random_state=1)
 """
-
-X_train, X_test, y_train, y_test = train_test_split(x_new2, y, train_size=0.7, random_state = 1)
+Escalamiento de características:
+Escala las características usando StandardScaler:
+python
+Copy code"""
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
 
 param_grid = {'C': np.logspace(-5, 7, 20)}
 
 # Búsqueda por validación cruzada
 # ==============================================================================
 grid_search = GridSearchCV(
-#'linear', 'poly', 'rbf', 'sigmoid', 'precomputed'
-        estimator  = SVC(kernel= 'linear',
+        estimator  = SVC(
         gamma='scale'),
         param_grid = param_grid,
         scoring    = 'accuracy',
@@ -227,12 +225,31 @@ grid_search = GridSearchCV(
         verbose    = 0,
         return_train_score = True
       )
-
 res = grid_search.fit(X_train, y_train)
-print (res)
+
 print (grid_search.best_params_)
-svm_model = SVC(kernel='linear', C=grid_search.best_params_['C'])
+
+"""
+Entrenamiento del modelo SVM:
+Utiliza Scikit-Learn para crear un modelo SVM para clasificación. Dado que estás trabajando en un problema de clasificación, puedes usar SVC (Support Vector Classification) para ello:
+python
+Copy code"""
+svm_model = SVC(kernel='linear', C=grid_search.best_params_['C'], random_state=1)
 svm_model.fit(X_train, y_train)
-# Imprimir la precisión del modelo en el conjunto de datos de prueba
+"""
+Ajusta los parámetros (kernel, C, etc.) según tu necesidad.
+Evaluación del modelo:
+Después de entrenar el modelo, evalúa su rendimiento en el conjunto de prueba:
+python
+Copy code"""
 y_pred = svm_model.predict(X_test)
-print("Precisión:", accuracy_score(y_test, y_pred))
+"""
+Puedes calcular diversas métricas para evaluar su rendimiento, como precisión, recall y F1-score.
+python
+Copy code"""
+from sklearn.metrics import accuracy_score, classification_report
+
+accuracy = accuracy_score(y_test, y_pred)
+print("Precisión:", accuracy)
+
+print(classification_report(y_test, y_pred))

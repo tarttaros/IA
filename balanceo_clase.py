@@ -175,12 +175,11 @@ atipicos("rectal temperature","abajo",37,media)
 atipicos("pulse","arriba",120,media1)
 atipicos("packed cell volume","abajo",30,media3)
 
-print(df["outcome"].value_counts())
+
 dfsvm = df
 dfsvm["outcome"] = dfsvm['outcome'].replace(1,0)
 dfsvm["outcome"] = dfsvm['outcome'].replace(2,1)
 dfsvm["outcome"] = dfsvm['outcome'].replace(3,1)
-print(dfsvm["outcome"].value_counts())
 
 x = dfsvm.drop(columns=['outcome'])
 y = dfsvm['outcome']
@@ -192,6 +191,8 @@ features = array(x.columns)
 X_new = best.fit_transform(x, y)
 filter = best.get_support()
 x_new2 = pd.DataFrame(X_new, columns = features[filter])
+print(features[filter])
+x_new2 = pd.get_dummies(x_new2, columns=['mucous membranes', 'pain', 'peripheral pulse'])
 
 def crearBarras (etiquetas, y):
   count_classes = pd.value_counts(y, sort = True)
